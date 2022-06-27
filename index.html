@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            #canvas-hintergrund {
+                z-index: -1;
+                background-color: darkslategray;
+                position: fixed;
+
+            }
+
+            #titel {
+                position: relative;
+                height: 1.1em;
+                transition: height 1s;
+            }
+
+            #titel > .eintrag {
+                position: absolute;
+                top: 0;
+                height: 1.1em;
+                transition: height 1s;
+                display: flex;
+                align-items: flex-end;
+                transition: height 1s;
+            }
+
+            #titel.geoeffnet {
+                height: 3.3em;
+            }
+
+            #titel.geoeffnet > .logo {
+                display: none;
+            }
+
+            #titel.geoeffnet > .eintrag1 {
+                height: 2.2em;
+            }
+
+            #titel.geoeffnet > .eintrag2 {
+                height: 3.3em;
+            }
+
+            #titel > .eintrag > * {
+                opacity: 0;
+                transition-property: opacity;
+                transition-duration: 100ms;
+            }
+
+            #titel.geoeffnet > .eintrag > * {
+                opacity: 1;
+            }
+
+            #titel > .eintrag > *:nth-child(2) {
+                transition-delay: 1050ms;
+            }
+
+            #titel > .eintrag > *:nth-child(3) {
+                transition-delay: 1100ms;
+            }
+        </style>
+    </head>
+    <body style="margin: 0; min-height: 100vh;">
+        <canvas id="canvas-hintergrund">
+        </canvas>
+        <div style="display: flex; justify-content: center; align-items: center; height: 100vh">
+            <div 
+                style=
+                    "
+                        position: relative;
+                        color: white; 
+                        font-size: xxx-large; 
+                        font-family: 'Courier New', Courier, monospace;
+                    "
+                id="titel"
+            >
+                <div class="logo">wansch.it</div>
+                <div class="eintrag eintrag1">
+                    <div>w</div>
+                    <div>e</div>
+                    <div>r</div>
+                </div>
+                <div class="eintrag eintrag2">
+                    <div>w</div>
+                </div>
+            </div>
+            
+        </div>
+        <script src="hintergrund.js"></script>
+        <script src="titel.js"></script>
+    </body>
+</html>
