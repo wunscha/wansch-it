@@ -1,7 +1,7 @@
 'use strict'
 
 // Optionen für Knoten
-let anzahlKnotenEbene = 50;
+let anzahlKnotenEbene;
 let optionenKnoten = {
     // Ebene 1
     1:  {
@@ -26,47 +26,44 @@ let contextHintergrund = canvasHintergrund.getContext('2d');
 let arrKnoten = [];
 let maxEntfernung = 50;
 
-let tid;
 window.addEventListener('resize', () => {
-    canvasHintergrund.width = window.innerWidth;
-    canvasHintergrund.height = window.innerHeight;
-    // ---
-    let summeVorher = 0;
-    arrKnoten.forEach(kn => {summeVorher += kn.richtungsvektor.y;});
-    console.log('Durchschnitt Vektor vorher:', summeVorher / arrKnoten.length);
-    // ---
+    anpasseGrösse();
     initiiereHintergrund();
-    // ---
-    let summeNacher = 0;
-    arrKnoten.forEach(kn => {summeNacher += kn.richtungsvektor.y;});
-    console.log('Durchschnitt Vektor nachher:', summeNacher / arrKnoten.length);
-    // ---
 })
 
 function initiiereHintergrund() {
     arrKnoten = [];
     for (let i=0; i < anzahlKnotenEbene; i++) {
-        arrKnoten.push(new Knoten(1, 'titel'));
+        arrKnoten.push(new Knoten(1, 'container-inhalt'));
     }
     for (let i=0; i < anzahlKnotenEbene; i++) {
-        arrKnoten.push(new Knoten(2, 'titel'));
+        arrKnoten.push(new Knoten(2, 'container-inhalt'));
     }
     for (let i=0; i < anzahlKnotenEbene; i++) {
-        arrKnoten.push(new Knoten(3, 'titel'));
+        arrKnoten.push(new Knoten(3, 'container-inhalt'));
     }
 }
 
+let animationGestoppt = false;
+let STRUKTUR = 'netz';
 function animationsschleife() {
-    window.requestAnimationFrame(animationsschleife);
     contextHintergrund.clearRect(0, 0, canvasHintergrund.width, canvasHintergrund.height);
     for (let i = 0; i < arrKnoten.length; i++) {
         let knoten = arrKnoten[i];
         knoten.aktualisiere();
         knoten.zeichneKnoten();
-        if (i > 0) {zeichneKante(knoten, arrKnoten[i-1]);}
-        if (i > 1) {zeichneKante(knoten, arrKnoten[i-2]);}
-        if (i < arrKnoten.length - 2) {zeichneKante(knoten, arrKnoten[i+1]);}
-        if (i > arrKnoten.length - 1) {zeichneKante(knoten, arrKnoten[i+2]);}
+        if (STRUKTUR == 'netz') {
+            if (i > 0) {zeichneKanteNetz(knoten, arrKnoten[i-1]);}
+            if (i > 1) {zeichneKanteNetz(knoten, arrKnoten[i-2]);}
+            if (i < arrKnoten.length - 2) {zeichneKanteNetz(knoten, arrKnoten[i+1]);}
+            if (i > arrKnoten.length - 1) {zeichneKanteNetz(knoten, arrKnoten[i+2]);}
+        }
+        if (STRUKTUR == 'cluster') {
+            zeichneKanteCluster(knoten, arrKnoten);
+        }
+    }
+    if (!animationGestoppt) {
+        setTimeout(() => {window.requestAnimationFrame(animationsschleife);}, 0); // asynchron zwecks Performance
     }
 }
 
@@ -78,19 +75,17 @@ class Knoten {
         this.x = this.xDefault = Math.random() * canvasHintergrund.width;
         this.y = this.yDefault = Math.random() * canvasHintergrund.height;
         this.richtungswinkel = Math.floor(Math.random() * 360);
-        this.richtungsvektor = {
-            // x: Math.cos(this.richtungswinkel) * this.geschwindigkeit,
-            x: 0,
-            y: Math.sin(this.richtungswinkel) * this.geschwindigkeit,
-            // y: 0,
+        // Richtungsvektor mit Drehung um Längsachse
+        this.richtungsvektor = {};
+        if (STRUKTUR == 'netz') {
+            if (canvasHintergrund.width > canvasHintergrund.height) {
+                this.erzeugeRichtungsvektor({x: 0});
+            } else {
+                this.erzeugeRichtungsvektor({y: 0});
+            }
         }
-        // Drehung um Längsachse
-        if (canvasHintergrund.width > canvasHintergrund.height) {
-            this.richtungsvektor.x = 0;
-            this.richtungsvektor.y = Math.sin(this.richtungswinkel) * this.geschwindigkeit;
-        } else {
-            this.richtungsvektor.x = Math.cos(this.richtungswinkel) * this.geschwindigkeit;
-            this.richtungsvektor.y = 0;
+        if (STRUKTUR == 'cluster') {
+            this.erzeugeRichtungsvektor({});
         }
         // Rand Innen
         this.idRandInnen = idRandInnen;
@@ -100,13 +95,14 @@ class Knoten {
         this.beachteRandAußen = this.beachteRandAußen.bind(this);
         this.beachteRandInnen = this.beachteRandInnen.bind(this);
         this.zeichneKnoten = this.zeichneKnoten.bind(this);
+        this.erzeugeRichtungsvektor = this.erzeugeRichtungsvektor.bind(this);
     }
     
     aktualisiere() {
         this.beachteRandAußen();
         this.beachteRandInnen();
-        this.x += this.richtungsvektor.x * this.beschleunigungsFaktor;
-        this.y += this.richtungsvektor.y * this.beschleunigungsFaktor;
+        this.x += this.richtungsvektor.x;
+        this.y += this.richtungsvektor.y;
     }
 
     beachteRandAußen() {
@@ -151,19 +147,20 @@ class Knoten {
                 abstandRand = Math.abs(this.x - this.sperrbereich.links);
                 naechsterRand = 'rechts';
             };
-            // Richtung umkehren
+            // Richtung umkehren und Schub geben
             if (naechsterRand == 'unten' || naechsterRand == 'oben') {
-                this.richtungsvektor.y *= -1;
                 this.y = this.sperrbereich[naechsterRand];
+                this.richtungsvektor.y *= -1;
+                // Schub
+                // if (naechsterRand == 'oben' && this.richtungsvektor.y == 0) {this.richtungsvektor.y = Math.random() * this.geschwindigkeit;}
+                // else if (naechsterRand == 'unten' && this.richtungsvektor.y == 0) {this.richtungsvektor.y = Math.random() * this.geschwindigkeit * -1; console.log(this.richtungsvektor.y)}
+                // else {this.richtungsvektor.y *= -1;} // Richtung umkehren
             }
             if (naechsterRand == 'links' || naechsterRand == 'rechts') {
                 this.richtungsvektor.x *= -1;
                 this.x = this.sperrbereich[naechsterRand];
             }
-            // Beschleunigen
-            this.beschleunigungsFaktor = 2;
-        } else {
-            this.beschleunigungsFaktor = 1;
+            
         }
     }
 
@@ -174,9 +171,24 @@ class Knoten {
         contextHintergrund.fillStyle = this.farbe;
         contextHintergrund.fill();
     }
+
+    erzeugeRichtungsvektor(vorgabe) {
+        // X
+        if (vorgabe.x != undefined) {
+            this.richtungsvektor.x = vorgabe.x;
+        } else {
+            this.richtungsvektor.x = Math.cos(this.richtungswinkel) * this.geschwindigkeit;
+        }
+        // Y
+        if (vorgabe.y != undefined) {
+            this.richtungsvektor.y = vorgabe.y;
+        } else {
+            this.richtungsvektor.y = Math.sin(this.richtungswinkel) * this.geschwindigkeit;
+        }
+    }
 }
 
-function zeichneKante(knoten1, knoten2) {
+function zeichneKanteNetz(knoten1, knoten2) {
     contextHintergrund.lineWidth = 0.1;
     contextHintergrund.strokeStyle = knoten1.farbe;
     contextHintergrund.beginPath();
@@ -186,7 +198,25 @@ function zeichneKante(knoten1, knoten2) {
     contextHintergrund.stroke();
 }
 
+let entfernungMaximal = 200;
+function zeichneKanteCluster(knoten, arrKnoten) {
+    for (let i = 0; i < arrKnoten.length; i++) {
+        let entfernung = Math.sqrt(Math.pow(knoten.x - arrKnoten[i].x, 2) + Math.pow(knoten.y - arrKnoten[i].y, 2));
+        let opacity = 1 - entfernung / entfernungMaximal;
+        if (opacity > 0) {
+            contextHintergrund.lineWidth = 0.1;
+            contextHintergrund.strokeStyle = `rgb(200, 200, 200, ${opacity})`;
+            contextHintergrund.beginPath();
+            contextHintergrund.moveTo(knoten.x, knoten.y);
+            contextHintergrund.lineTo(arrKnoten[i].x, arrKnoten[i].y);
+            contextHintergrund.closePath();
+            contextHintergrund.stroke();
+        }
+    }
+}
+
 function anpasseGrösse() {
+    anzahlKnotenEbene = Math.floor(window.innerWidth/ 30);
     canvasHintergrund.width = window.innerWidth;
     canvasHintergrund.height = window.innerHeight;
 }

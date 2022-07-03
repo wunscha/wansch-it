@@ -3,91 +3,80 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-            #canvas-hintergrund {
+            #titel, 
+            .eintrag-titel, 
+            #toggle-titel {
+                height: 0;
+                overflow: hidden;
+                transition-property: height; 
+                transition-duration: 1s;
+            }
+
+            #titel.geoeffnet, 
+            .eintrag-titel.geoeffnet, 
+            #toggle-titel.geoeffnet {
+                height: 1em;
+            }
+
+            .eintrag-titel.aktuell {
+                color: lightseagreen;
+            }
+
+            #container-inhalt {
+                /* Startwerte für transition notwendig */
+                min-height: 1em; 
+                min-width: 1em;
+                transition: min-height 1s, min-width 1s;
+            }
+
+            #container-inhalt.inhalt {
+                min-height: 80vh;
+                min-width: 80vw;
+            }
+        </style>
+    </head>
+    <body 
+        id="body"
+        style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0; 
+            min-height: 100vh;
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+        "
+    >
+        <canvas 
+            id="canvas-hintergrund"
+            style="
                 z-index: -1;
                 background-color: darkslategray;
                 position: fixed;
-
-            }
-
-            #titel {
-                position: relative;
-                height: 1.1em;
-                transition: height 1s;
-            }
-
-            #titel > .eintrag {
-                position: absolute;
-                top: 0;
-                height: 1.1em;
-                transition: height 1s;
-                display: flex;
-                align-items: flex-end;
-                transition: height 1s;
-            }
-
-            #titel.geoeffnet {
-                height: 10em;
-            }
-
-            /* #titel.geoeffnet > .logo {
-                display: none;
-            }
-
-            #titel.geoeffnet > .eintrag1 {
-                height: 2.2em;
-            }
-
-            #titel.geoeffnet > .eintrag2 {
-                height: 3.3em;
-            }
-
-            #titel > .eintrag > * {
-                opacity: 0;
-                transition-property: opacity;
-                transition-duration: 100ms;
-            }
-
-            #titel.geoeffnet > .eintrag > * {
-                opacity: 1;
-            }
-
-            #titel > .eintrag > *:nth-child(2) {
-                transition-delay: 1050ms;
-            }
-
-            #titel > .eintrag > *:nth-child(3) {
-                transition-delay: 1100ms;
-            } */
-        </style>
-    </head>
-    <body style="margin: 0; min-height: 100vh;" id="body">
-        <canvas id="canvas-hintergrund">
+            "
+        >
         </canvas>
-        <div style="display: flex; justify-content: center; align-items: center; height: 100vh">
+        <div id="container-inhalt">
             <div 
-                style=
-                    "
-                        position: relative;
-                        color: white; 
-                        font-size: xxx-large; 
-                        font-family: 'Courier New', Courier, monospace;
-                    "
-                id="titel"
+                id="container-titel"
+                style="
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: xxx-large;
+                    cursor: pointer;
+                "
             >
-                <div class="logo">wansch.it</div>
-                <!--
-                <div class="eintrag eintrag1">
-                    <div>w</div>
-                    <div>e</div>
-                    <div>r</div>
+                <div>
+                    <div class="geoeffnet" id="titel">wansch.it</div>
+                    <div class="eintrag-titel eintrag-titel-wer aktuell" id="eintrag-titel-wer">w</div>
+                    <div class="eintrag-titel eintrag-titel-wie aktuell" id="eintrag-titel-wie"">w</div>
+                    <div class="eintrag-titel eintrag-titel-was aktuell" id="eintrag-titel-was"">w</div>
                 </div>
-                <div class="eintrag eintrag2">
-                    <div>w</div>
+                <div id="toggle-titel">
+                    =
                 </div>
-                -->
             </div>
-            
+        </div>
         </div>
         <script src="hintergrund.js"></script>
         <script src="titel.js"></script>
