@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <!-- Quelle Hintergrundanimation: https://codepen.io/dudleystorey/pen/NbNjjX -->
+        <!-- Quelle Menübutton: https://codepen.io/rosalieelphick/pen/xJyRoK?editors=1100 -->
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
             #titel, 
@@ -30,9 +32,44 @@
             }
 
             #container-inhalt.inhalt {
-                min-height: 80vh;
-                min-width: 80vw;
+                min-height: 70vh;
+                min-width: 70vw;
             }
+
+            /* Toggle Titel */
+            #toggle-titel {
+                position: relative;
+                height: 1em; /* responsive machen */
+                width: 0em; /* responsive machen */
+                transition: width 0.5s;
+                transition-delay: 0.5s;
+            }
+
+            #toggle-titel.geoeffnet {
+                width: 1em;
+            }
+            
+            .balken-toggle-titel {
+                width: 100%;
+                position: absolute;
+                height: 5%;
+                background-color: lightgrey;
+                transition: all 1s;
+            }
+
+            .balken-toggle-titel-1 {
+                top: 0;
+            }
+
+            .balken-toggle-titel-2 {
+                top: 50%;
+                transform: translate(0%, -50%);
+            }
+
+            .balken-toggle-titel-3 {
+                bottom: 0;
+            }
+            
         </style>
     </head>
     <body 
@@ -73,7 +110,9 @@
                     <div class="eintrag-titel eintrag-titel-was aktuell" id="eintrag-titel-was"">w</div>
                 </div>
                 <div id="toggle-titel">
-                    =
+                    <span class="balken-toggle-titel balken-toggle-titel-1" ></span>
+                    <span class="balken-toggle-titel balken-toggle-titel-2" ></span>
+                    <span class="balken-toggle-titel balken-toggle-titel-3" ></span>
                 </div>
             </div>
         </div>
